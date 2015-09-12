@@ -2,60 +2,54 @@
 chrome.webRequest.onBeforeRequest.addListener(function(details) {
     return detectRedirect(details);
 }, {
-    urls : ["<all_urls>"],
-    types: ["main_frame","sub_frame"]
-}, ["blocking"]);
+    urls : ['<all_urls>'],
+    types: ['main_frame', 'sub_frame']
+}, ['blocking']);
 
 
 function detectRedirect(details) {
-    var url = details.url;
+  var url = details.url,
+      HTTP = 'http://',
+      HTTPS = 'https://',
+      protocol,
+      HN = 'news.ycombinator.com',
+      REDDIT = 'www.reddit.com';
 
-    if (url === null) {
+    console.log(url);
+
+    if (!url) {
         return;
     }
 
-    var http = "http://";
-    var https = "https://";
-    var amazonurl = "www.amazon.com";
-    // ignore links with these strings in them
-    var filter = "(sa-no-redirect=)|(redirect=true)|(redirect.html)|(r.html)|(/gp/dmusic/cloudplayer)|(/gp/wishlist)|(aws.amazon.com)";
+    protocol = (url.indexOf(HTTP) !== -1) ? HTTP : HTTPS;
 
-    // Don't try and redirect pages that are in our filter
-    if (url.match(filter) !== null) {
-        return;
+    if (url.match(protocol + HN)) {
+      return redirectHn(protocol, HN, url);
     }
 
-    if (url.match(http + amazonurl) !== null) {
-        // If this is the non-secure link...
-        return redirectToSmile(http, amazonurl, url);
-
-    }  else if (url.match(https + amazonurl) !== null) {
-        // If this is the secure link...
-        return redirectToSmile(https, amazonurl, url);
+    else if (url.match(protocol + REDDIT)) {
+      return redirectReddit(protocol, REDDIT, url);
     }
-
 }
 
-function redirectToSmile(scheme, amazonurl, url) {
-    var smileurl = "smile.amazon.com";
+// Redirect HN to /newest if requesting the homepage.
+function redirectHn(protocol, domain, url) {
+  // root page
+  if (url === (protocol + domain + '/')) {
     return {
-        // redirect to amazon smile append the rest of the url
-        redirectUrl : scheme + smileurl + getRelativeRedirectUrl(amazonurl, url)
+      redirectUrl: url + 'newest'
     };
+  }
 }
 
-function getRelativeRedirectUrl(amazonurl, url) {
-    var relativeUrl = url.split(amazonurl)[1];
-    var noRedirectIndicator = "sa-no-redirect=1";
-    var paramStart = "?";
-    var paramStartRegex = "\\" + paramStart;
-    var newurl = null;
+// Redirect Reddit homepage, subreddits, and comments to sort on 'new'
+function redirectReddit(protocol, domain, url) {
+  // TODO(rgardner): Enable subreddit support
 
-    // check to see if there are already GET variables in the url
-    if (relativeUrl.match(paramStartRegex) !== null) {
-        newurl = relativeUrl + "&" + noRedirectIndicator;
-    } else {
-        newurl = relativeUrl + paramStart + noRedirectIndicator;
-    }
-    return newurl;
+  // root page
+  if (url === (protocol + domain + '/')) {
+    return {
+      redirectUrl: protocol + domain + '/'
+    };
+  }
 }
