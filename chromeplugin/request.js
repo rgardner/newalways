@@ -15,8 +15,6 @@ function detectRedirect(details) {
       HN = 'news.ycombinator.com',
       REDDIT = 'www.reddit.com';
 
-    console.log(url);
-
     if (!url) {
         return;
     }
@@ -44,12 +42,59 @@ function redirectHn(protocol, domain, url) {
 
 // Redirect Reddit homepage, subreddits, and comments to sort on 'new'
 function redirectReddit(protocol, domain, url) {
-  // TODO(rgardner): Enable subreddit support
+  var parser = parseUrl(url),
+      insertSlash = !endsWith(url, '/'),
+      SUBREDDIT_REGEX = /\/r\/[\w]*\/?$/,
+      COMMENTS_REGEX = /\/r\/[\w]*\/comments\//;
+
+
+  // already sorting comments, no need to re-sort.
+  if (parser.search.indexOf('sort') !== -1) return;
 
   // root page
   if (url === (protocol + domain + '/')) {
     return {
-      redirectUrl: protocol + domain + '/'
+      redirectUrl: url + 'new'
     };
   }
+
+  // subreddit
+  else if (SUBREDDIT_REGEX.test(parser.pathname)) {
+    return {
+      redirectUrl: url + (insertSlash ? '/' : '') + 'new'
+    };
+  }
+
+  // comments
+  else if (COMMENTS_REGEX.test(parser.pathname)) {
+    return {
+      redirectUrl: url + '?sort=new'
+    };
+  }
+}
+
+/** URI Parsing with JS.
+ * thanks to @jlong on GitHub {@link https://gist.github.com/jlong/2428561}
+ * @example
+ * var parser = document.createElement('a');
+ * parser.href = "http://example.com:3000/pathname/?search=test#hash";
+ * parser.protocol; // => "http:"
+ * parser.hostname; // => "example.com"
+ * parser.port;     // => "3000"
+ * parser.pathname; // => "/pathname/"
+ * parser.search;   // => "?search=test"
+ * parser.hash;     // => "#hash"
+ * parser.host;     // => "example.com:3000"
+ */
+function parseUrl(url) {
+  var parser = document.createElement('a');
+  parser.href = url;
+  return parser;
+}
+
+/** Does string ends with suffix?
+ * thanks to @chakrit on SO {@link http://stackoverflow.com/a/2548133/4228400}
+ */
+function endsWith(str, suffix) {
+  return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
