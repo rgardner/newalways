@@ -13,17 +13,17 @@ function detectRedirect(details) {
       HN = 'news.ycombinator.com',
       REDDIT = 'www.reddit.com';
 
-    if (!url) {
-        return;
-    }
+  if (!url) {
+      return;
+  }
 
-    if (url.match(HN)) {
-      return redirectHn(url);
-    }
+  if (url.match(HN)) {
+    return redirectHn(url);
+  }
 
-    else if (url.match(REDDIT)) {
-      return redirectReddit(url);
-    }
+  else if (url.match(REDDIT)) {
+    return redirectReddit(url);
+  }
 }
 
 // Redirect HN to /newest if requesting the homepage.
