@@ -27,3 +27,10 @@ encourage users to participate more in these communities.
 ## Future Work
 - consider showing new pages only some of the time
 - allow users to toggle *AlwaysNew* on/off
+
+## Donations
+In the spirit of the extension this was originally forked from, if you like
+this extension please consider donating to [buildOn](http://www.buildon.org/),
+an amazing non-profit that aims to "break the cycle of poverty, illiteracy and
+low expectations through service and education." They have 4 stars on
+[Charity Navigator](http://www.charitynavigator.org/index.cfm?bay=search.summary&orgid=8894).
