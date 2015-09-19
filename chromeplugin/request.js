@@ -8,10 +8,8 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 
 
 function detectRedirect(details) {
+  'use strict';
   var url = details.url,
-      HTTP = 'http://',
-      HTTPS = 'https://',
-      protocol,
       HN = 'news.ycombinator.com',
       REDDIT = 'www.reddit.com';
 
@@ -19,21 +17,22 @@ function detectRedirect(details) {
         return;
     }
 
-    protocol = (url.indexOf(HTTP) !== -1) ? HTTP : HTTPS;
-
-    if (url.match(protocol + HN)) {
-      return redirectHn(protocol, HN, url);
+    if (url.match(HN)) {
+      return redirectHn(url);
     }
 
-    else if (url.match(protocol + REDDIT)) {
-      return redirectReddit(protocol, REDDIT, url);
+    else if (url.match(REDDIT)) {
+      return redirectReddit(url);
     }
 }
 
 // Redirect HN to /newest if requesting the homepage.
-function redirectHn(protocol, domain, url) {
+function redirectHn(url) {
+  'use strict';
+  var parser = parseUrl(url);
+
   // root page
-  if (url === (protocol + domain + '/')) {
+  if (parser.pathname === '/') {
     return {
       redirectUrl: url + 'newest'
     };
@@ -41,9 +40,10 @@ function redirectHn(protocol, domain, url) {
 }
 
 // Redirect Reddit homepage, subreddits, and comments to sort on 'new'
-function redirectReddit(protocol, domain, url) {
+function redirectReddit(url) {
+  'use strict';
   var parser = parseUrl(url),
-      insertSlash = !endsWith(url, '/'),
+      shouldInsertSlash = !endsWith(url, '/'),
       SUBREDDIT_REGEX = /\/r\/[\w]*\/?$/,
       COMMENTS_REGEX = /\/r\/[\w]*\/comments\//;
 
@@ -52,7 +52,7 @@ function redirectReddit(protocol, domain, url) {
   if (parser.search.indexOf('sort') !== -1) return;
 
   // root page
-  if (url === (protocol + domain + '/')) {
+  if (parser.pathname === '/') {
     return {
       redirectUrl: url + 'new'
     };
@@ -61,7 +61,7 @@ function redirectReddit(protocol, domain, url) {
   // subreddit
   else if (SUBREDDIT_REGEX.test(parser.pathname)) {
     return {
-      redirectUrl: url + (insertSlash ? '/' : '') + 'new'
+      redirectUrl: url + (shouldInsertSlash ? '/' : '') + 'new'
     };
   }
 
@@ -87,6 +87,7 @@ function redirectReddit(protocol, domain, url) {
  * parser.host;     // => "example.com:3000"
  */
 function parseUrl(url) {
+  'use strict';
   var parser = document.createElement('a');
   parser.href = url;
   return parser;
@@ -96,5 +97,6 @@ function parseUrl(url) {
  * thanks to @chakrit on SO {@link http://stackoverflow.com/a/2548133/4228400}
  */
 function endsWith(str, suffix) {
+  'use strict';
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
